@@ -15,6 +15,7 @@ def main():
 
     if line_number not in test_map[file_path]:
         print "WARNING: Line number "+line_number+" has no known tests"
+        return
 
     tests = test_map[file_path][line_number]
     for test in tests:
