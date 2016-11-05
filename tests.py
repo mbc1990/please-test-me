@@ -1,5 +1,5 @@
 import unittest
-import product
+from project import product
 
 class AdditionTest(unittest.TestCase):
 
