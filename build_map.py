@@ -14,7 +14,6 @@ def main():
     # TODO: Make relative, pass as argument
     project_dir = '/Users/mbc/Documents/git_repos/please-test-me/project/'
     file_list =  [y for x in os.walk(project_dir) for y in glob(os.path.join(x[0], '*.py'))]
-    print file_list
     for path in test_paths:
         cov = coverage.Coverage()
         cov.start()
@@ -27,7 +26,6 @@ def main():
         for file_name in file_list:
             line_numbers_covered = get_covered_lines(file_name, cov)
             if line_numbers_covered:
-                print "coverage detected"
                 if file_name not in test_map:
                     test_map[file_name] = {}
                 for line in line_numbers_covered:
@@ -35,7 +33,6 @@ def main():
                         test_map[file_name][line] = []
                     test_map[file_name][line].append(test_path)
     
-    print test_map
     with open('test_map.json', 'w') as fp:
         json.dump(test_map, fp)
 
