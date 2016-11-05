@@ -44,10 +44,11 @@ def get_test_paths():
         for line in lines:
             testpath = re.search(r"\(.*\)", line)
             if testpath:
+                test_name = line.split(' ')[0]
                 path = testpath.group().replace('(','').replace(')','')
                 class_name = re.search(r'([A-Z][a-z0-9]+)+', path).group(0)
                 test_file_path = path.split(class_name)[0][:-1].replace('.','/')
-                dot_path = class_name+path.split(class_name)[1]
+                dot_path = class_name+'.'+test_name
                 nose_args.append((test_file_path, dot_path))
         return nose_args 
 
