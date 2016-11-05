@@ -14,3 +14,9 @@ Then run `python build_map.py` to generate a `test_map.json` file
 
 ## Usage 
 Left as an exercize to the reader
+
+## TODO
+    - Use the nose python client to collect tests instead of a shell command
+    - Refactor into a class with abstract methods, and a python/nosetests implementation 
+    - Tests
+    - Deal with "staleness" of test_map.json
