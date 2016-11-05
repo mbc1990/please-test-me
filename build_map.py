@@ -3,6 +3,7 @@ import coverage
 from coverage import CoverageData
 import nose
 import tests
+import json
 from subprocess import call
 from glob import glob
 import os
@@ -29,9 +30,10 @@ def main():
                 if line not in test_map[file_name]:
                     test_map[file_name][line] = []
                 test_map[file_name][line].append(test_path)
-
-    print "Done"
+    
     print test_map
+    with open('test_map.json', 'w') as fp:
+        json.dump(test_map, fp)
 
 def get_test_paths():
     with open('nose_output.txt') as f: # Generate this file by running nosetests -v --nocapture > nose_output.txt 2>&1
