@@ -4,9 +4,14 @@ from coverage import CoverageData
 import nose
 import tests
 from subprocess import call
+from glob import glob
+import os
 
 def main():
     test_paths = get_test_paths()
+    test_map = {} 
+    project_dir = 'project/'
+    file_list =  [y for x in os.walk(project_dir) for y in glob(os.path.join(x[0], '*.py'))]
     for path in test_paths:
         cov = coverage.Coverage()
         cov.start()
@@ -14,16 +19,22 @@ def main():
         result = nose.run(argv=['--nocapture', test_path])
         cov.stop()
         cov.save()
+
         # For each project file
-        line_numbers_covered = get_covered_lines('/Users/mbc/Documents/git_repos/please-test-me/product.py', cov)
-        print test_path
-        print '--->'+str(line_numbers_covered)
+        for file_name in file_list:
+            line_numbers_covered = get_covered_lines('/Users/mbc/Documents/git_repos/please-test-me/product.py', cov)
+            if file_name not in test_map:
+                test_map[file_name] = {}
+            for line in line_numbers_covered:
+                if line not in test_map[file_name]:
+                    test_map[file_name][line] = []
+                test_map[file_name][line].append(test_path)
 
-    # TODO: Save in map of filename -> line number -> testname
-
+    print "Done"
+    print test_map
 
 def get_test_paths():
-    with open('nose_output.txt') as f: # Generate this file by running nosetests -v --nocapture > filename 2>&1
+    with open('nose_output.txt') as f: # Generate this file by running nosetests -v --nocapture > nose_output.txt 2>&1
         lines = f.readlines()
         nose_args = []
         for line in lines:
