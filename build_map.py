@@ -11,14 +11,19 @@ def main():
     test_map = {} 
 
     # Absolute path of project 
-    # TODO: Make relative, pass as argument
     project_dir = '/Users/mbc/Documents/git_repos/please-test-me/project/'
+
+    # Absolute path of tests
+    test_dir = '/Users/mbc/Documents/git_repos/please-test-me/'
+    
+    # List of project files 
     file_list =  [y for x in os.walk(project_dir) for y in glob(os.path.join(x[0], '*.py'))]
+
     for path in test_paths:
         cov = coverage.Coverage()
         cov.start()
         test_path = path[0]+'.py:'+path[1]
-        result = nose.run(argv=['--nocapture', test_path])
+        result = nose.run(argv=['--nocapture', test_dir+test_path])
         cov.stop()
         cov.save()
 
