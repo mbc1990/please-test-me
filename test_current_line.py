@@ -1,8 +1,12 @@
 import json
 import sys
 import nose
+import subprocess
 
 def main():
+    # which_nosetests = '/Users/malcolm/.pyenv/shims/nosetests'
+    which_nosetests = 'nosetests'
+
     with open('test_map.json') as fp:    
         test_map = json.load(fp)
 
@@ -20,7 +24,7 @@ def main():
     tests = test_map[file_path][line_number]
     for test in tests:
         print test
-        nose.run(argv=['-vv', '--nocapture', test])
+        print subprocess.check_output([which_nosetests, '-v', '--nocapture', test])
 
 if __name__ == "__main__":
     main()
