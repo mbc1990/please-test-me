@@ -24,6 +24,7 @@ def main():
     tests = test_map[file_path][line_number]
     for test in tests:
         print test
+        # TODO: This isn't really working, nosetests is somehow still writing to stdout
         print subprocess.check_output([which_nosetests, '-v', '--nocapture', test])
 
 if __name__ == "__main__":
