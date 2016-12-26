@@ -9,6 +9,7 @@ from glob import glob
 from file_observer import MapMakerObserver
 from filewatch import file_updated_subject, Watcher
 from git import Repo
+from git.exc import NoSuchPathError, GitCommandError
 
 class MapMaker:
     
@@ -43,7 +44,7 @@ class MapMaker:
             self.watch_paths[path['path']] = path['ignore']
             
             # TODO: Debugging - delete
-            # self._get_change_delta(path['path'])
+            # self._get_delta(path['path'])
             # End debugging
 
         watcher = Watcher()
@@ -60,17 +61,27 @@ class MapMaker:
     def _make_new_commit(self, path, branch):
         """ 
             Makes a new commit on MapMaker's branch for this map version 
+
             This is used to compute a diff against the working copy of the 
             user's branch, which provides a heuristic for change
         """
         path_hash = hashlib.md5(path).hexdigest()
-        # TODO: Initialize data repository if it doesn't exist
-        repo = Repo('.repo_data/'+path_hash)
-        
-        # TODO: Create branch if it doesn't exist
-            # TODO: Add working repo as remote
 
-        # TODO: Checkout branch
+        # Create mirror repo
+        try:
+            repo = Repo('.repo_data/'+path_hash)
+        except NoSuchPathError:
+            repo = Repo.init('.repo_data/'+path_hash)
+
+        git = repo.git
+        # TODO: Add working repo as remote
+            # TODO: Use subprocess if the git wrapper can't do it
+
+        # Create and checkout mirror branch if it doesn't exist
+        try: 
+            git.checkout(branch)         
+        except GitCommandError:
+            git.checkout(b=branch)
 
         # TODO: Copy all the files from working path/branch over to data path/branch
 
@@ -128,7 +139,7 @@ class MapMaker:
         with open('.map_data/'+watch_path_hash+'/'+branch_hash+'/test_map.json', 'w') as fp:
             json.dump(test_map, fp)
 
-    def _get_change_delta(self, watch_path):
+    def _get_delta(self, watch_path):
         """ Returns the % change of code since the last map """
         working_repo = Repo(watch_path)
         # TODO: Get data repo         
