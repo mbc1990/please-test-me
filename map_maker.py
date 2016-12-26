@@ -23,6 +23,12 @@ class MapMaker:
     
     def __init__(self, watch_paths, delta_threshold):
 
+        # Initialize local data store directories
+        if not os.path.isdir('.map_data'):
+            os.mkdir('.map_data')
+        if not os.path.isdir('.repo_data'):
+            os.mkdir('.repo_data')
+
         self.delta_threshold = delta_threshold
         # Initialize observers for each watch_path
         for path in watch_paths:
@@ -35,6 +41,10 @@ class MapMaker:
             obs = MapMakerObserver(self, path['path'])
             file_updated_subject.register_observer(obs)
             self.watch_paths[path['path']] = path['ignore']
+            
+            # TODO: Debugging - delete
+            # self._get_change_delta(path['path'])
+            # End debugging
 
         watcher = Watcher()
         watcher.run()
@@ -44,7 +54,27 @@ class MapMaker:
         tests = self._collect_tests(path)
         repo = Repo(path)
         branch = repo.active_branch.name
-        self._build_map(path, ignore, tests, branch)
+        commit = self._make_new_commit(path, branch)
+        self._build_map(path, ignore, tests, branch, commit)
+
+    def _make_new_commit(self, path, branch):
+        """ 
+            Makes a new commit on MapMaker's branch for this map version 
+            This is used to compute a diff against the working copy of the 
+            user's branch, which provides a heuristic for change
+        """
+        path_hash = hashlib.md5(path).hexdigest()
+        # TODO: Initialize data repository if it doesn't exist
+        repo = Repo('.repo_data/'+path_hash)
+        
+        # TODO: Create branch if it doesn't exist
+            # TODO: Add working repo as remote
+
+        # TODO: Checkout branch
+
+        # TODO: Copy all the files from working path/branch over to data path/branch
+
+        # TODO: Commit them
 
     def _collect_tests(self, watch_path):
         """ Gets a list of tests to run """        
@@ -56,10 +86,10 @@ class MapMaker:
         nose_args = self._format_test_paths(lines)
         return nose_args
     
-    def _build_map(self, watch_path, ignore, test_list, branch):
+    def _build_map(self, watch_path, ignore, test_list, branch, commit):
         """ Builds a test map for a watch path/git branch combination """
-        test_map = {} 
-        
+        test_map = {'commit_hash': commit} 
+         
         # List of project files 
         file_list =  [y for x in os.walk(watch_path) for y in glob(os.path.join(x[0], '*.py'))]
         filtered = []
@@ -90,8 +120,6 @@ class MapMaker:
         # Save the test map data in a directory referencing its repo and branch
         watch_path_hash = hashlib.md5(watch_path).hexdigest()
         branch_hash = hashlib.md5(branch).hexdigest()
-        if not os.path.isdir('.map_data'):
-            os.mkdir('.map_data')
         if not os.path.isdir('.map_data/'+watch_path_hash):
             os.mkdir('.map_data/'+watch_path_hash)
         if not os.path.isdir('.map_data/'+watch_path_hash+'/'+branch_hash):
@@ -102,7 +130,11 @@ class MapMaker:
 
     def _get_change_delta(self, watch_path):
         """ Returns the % change of code since the last map """
-        pass
+        working_repo = Repo(watch_path)
+        # TODO: Get data repo         
+
+        # TODO: Compare
+        diff = repo.head.commit.diff()
 
     def _format_test_paths(self, nose_output):
             nose_args = []
