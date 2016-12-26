@@ -12,8 +12,8 @@ from git import Repo
 
 class MapMaker:
     
-    # List of absolute paths to directories that are being watched
-    watch_paths = []
+    # dict of path/ignore objects
+    watch_paths = {} 
 
     # Re-run build_map when this % of the codebase has changed
     delta_threshold = 0.1
@@ -22,27 +22,29 @@ class MapMaker:
     observers = []
     
     def __init__(self, watch_paths, delta_threshold):
+
+        self.delta_threshold = delta_threshold
         # Initialize observers for each watch_path
         for path in watch_paths:
             # Build initial maps
 
             # TODO: Check for map existence/branch/change delta
-            self._make_test_map_current(path)
+            self._make_test_map_current(path['path'], path['ignore'])
 
             # Initialize file watchers
-            obs = MapMakerObserver(self, path)
+            obs = MapMakerObserver(self, path['path'])
             file_updated_subject.register_observer(obs)
+            self.watch_paths[path['path']] = path['ignore']
 
-        print "Watchers initialized" 
         watcher = Watcher()
         watcher.run()
 
-    def _make_test_map_current(self, path):
+    def _make_test_map_current(self, path, ignore):
         """ Create or ovewrite map data for a repository's current branch """
         tests = self._collect_tests(path)
         repo = Repo(path)
         branch = repo.active_branch.name
-        self._build_map(path, tests, branch)
+        self._build_map(path, ignore, tests, branch)
 
     def _collect_tests(self, watch_path):
         """ Gets a list of tests to run """        
@@ -54,13 +56,19 @@ class MapMaker:
         nose_args = self._format_test_paths(lines)
         return nose_args
     
-    def _build_map(self, watch_path, test_list, branch):
+    def _build_map(self, watch_path, ignore, test_list, branch):
         """ Builds a test map for a watch path/git branch combination """
         test_map = {} 
         
         # List of project files 
         file_list =  [y for x in os.walk(watch_path) for y in glob(os.path.join(x[0], '*.py'))]
-        
+        filtered = []
+        for f in file_list:
+            for ig in ignore:
+                if not f.startswith(ig):
+                    filtered.append(f)
+        file_list = filtered
+
         for path in test_list:
             cov = coverage.Coverage()
             cov.start()
@@ -69,7 +77,6 @@ class MapMaker:
             cov.stop()
             cov.save()
 
-            # For each project file
             for file_name in file_list:
                 line_numbers_covered = cov.data.lines(file_name)
                 if line_numbers_covered:
