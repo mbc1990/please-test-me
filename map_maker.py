@@ -22,15 +22,20 @@ class MapMaker:
     # Observers that notify the mapmaker when a file or git branch changes 
     observers = []
     
-    def __init__(self, watch_paths, delta_threshold):
+    # Directory where "mirror" repositories are stored 
+    repo_data_dir = '' 
+    
+    def __init__(self, watch_paths, delta_threshold, repo_data_dir='/Users/mbc/.repo_data'):
+
+        self.delta_threshold = delta_threshold
+        self.repo_data_dir = repo_data_dir 
 
         # Initialize local data store directories
         if not os.path.isdir('.map_data'):
             os.mkdir('.map_data')
-        if not os.path.isdir('.repo_data'):
-            os.mkdir('.repo_data')
+        if not os.path.isdir(self.repo_data_dir):
+            os.mkdir(self.repo_data_dir)
 
-        self.delta_threshold = delta_threshold
         # Initialize observers for each watch_path
         for path in watch_paths:
             # Build initial maps
@@ -69,13 +74,11 @@ class MapMaker:
 
         # Create mirror repo
         try:
-            repo = Repo('.repo_data/'+path_hash)
+            repo = Repo(self.repo_data_dir+path_hash)
         except NoSuchPathError:
-            repo = Repo.init('.repo_data/'+path_hash)
+            repo = Repo.init(self.repo_data_dir+path_hash)
 
         git = repo.git
-        # TODO: Add working repo as remote
-            # TODO: Use subprocess if the git wrapper can't do it
 
         # Create and checkout mirror branch if it doesn't exist
         try: 
@@ -83,9 +86,25 @@ class MapMaker:
         except GitCommandError:
             git.checkout(b=branch)
 
-        # TODO: Copy all the files from working path/branch over to data path/branch
+        # Add working repo as remote, whose working copy we'll diff against in _get_delta
+        # TODO: Better check
+        if len(repo.remotes) == 0:
+            working_repo = Repo(path)
+            repo.create_remote('working', path)
 
-        # TODO: Commit them
+        # Remove everything from the last recorded state
+        try:
+            git.rm(".", r=True)
+        except GitCommandError:
+            # trivial case, nothing in repository
+            # TODO: Make assertion
+            pass
+        
+        # Copy the current working copy of the working repo into the data repo
+        subprocess.call(['cp', '-R', path, self.repo_data_dir+path_hash])
+        git.add(A=True)
+        git.commit(m="Working changes at %s" % "TODO: Add timestamp")
+        # TODO: Return commit hash 
 
     def _collect_tests(self, watch_path):
         """ Gets a list of tests to run """        
@@ -142,28 +161,32 @@ class MapMaker:
     def _get_delta(self, watch_path):
         """ Returns the % change of code since the last map """
         working_repo = Repo(watch_path)
-        # TODO: Get data repo         
+        # TODO: Get branch
 
-        # TODO: Compare
+        # TODO: Compare to mirror repo/branch
         diff = repo.head.commit.diff()
 
     def _format_test_paths(self, nose_output):
-            nose_args = []
-            for line in nose_output:
-                testpath = re.search(r"\(.*\)", line)
-                if testpath:
-                    test_name = line.split(' ')[0]
-                    path = testpath.group().replace('(','').replace(')','')
-                    class_name = re.search(r'([A-Z][a-z0-9]+)+', path).group(0)
-                    test_file_path = path.split(class_name)[0][:-1].replace('.','/')
-                    dot_path = class_name+'.'+test_name
-                    nose_args.append((test_file_path, dot_path))
-            return nose_args 
+        nose_args = []
+        for line in nose_output:
+            testpath = re.search(r"\(.*\)", line)
+            if testpath:
+                test_name = line.split(' ')[0]
+                path = testpath.group().replace('(','').replace(')','')
+                class_name = re.search(r'([A-Z][a-z0-9]+)+', path).group(0)
+                test_file_path = path.split(class_name)[0][:-1].replace('.','/')
+                dot_path = class_name+'.'+test_name
+                nose_args.append((test_file_path, dot_path))
+        return nose_args 
 
     def branch_change(self, watch_path):
         """ Called from file observer on git branch change"""
         print "Branch change: "+watch_path
+        # TODO: If branch doesn't exist in mirror repo 
+            # TODO: Create new branch in/Users/mbc/.repo_data and make new test map
 
     def file_change(self, watch_path):
         """ Called from file observer on file change without git branch change"""
         print "file in directory changed: "+watch_path
+        # TODO: if delta is > threshold
+            # TODO: Make new test map 
