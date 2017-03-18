@@ -25,7 +25,7 @@ class MapMaker:
     # Directory where "mirror" repositories are stored 
     repo_data_dir = '' 
     
-    def __init__(self, watch_paths, delta_threshold, repo_data_dir='/Users/mbc/.repo_data'):
+    def __init__(self, watch_paths, delta_threshold, repo_data_dir='/Users/mbc/.repo_data/'):
 
         self.delta_threshold = delta_threshold
         self.repo_data_dir = repo_data_dir 
@@ -49,9 +49,10 @@ class MapMaker:
             self.watch_paths[path['path']] = path['ignore']
             
             # TODO: Debugging - delete
-            # self._get_delta(path['path'])
+            self._get_delta(path['path'])
             # End debugging
-
+        
+        # Start file change watcher registered by file_updated_subject
         watcher = Watcher()
         watcher.run()
 
@@ -60,8 +61,11 @@ class MapMaker:
         tests = self._collect_tests(path)
         repo = Repo(path)
         branch = repo.active_branch.name
-        commit = self._make_new_commit(path, branch)
-        self._build_map(path, ignore, tests, branch, commit)
+        try:
+            commit = self._make_new_commit(path, branch)
+            self._build_map(path, ignore, tests, branch, commit)
+        except GitCommandError:
+            print "No changes, not building new map"
 
     def _make_new_commit(self, path, branch):
         """ 
@@ -85,17 +89,15 @@ class MapMaker:
             git.checkout(branch)         
         except GitCommandError:
             git.checkout(b=branch)
-
+        
         # Add working repo as remote, whose working copy we'll diff against in _get_delta
-        # TODO: Better check
-        if len(repo.remotes) == 0:
-            working_repo = Repo(path)
-            repo.create_remote('working', path)
+        #working_repo = Repo(path)
+        #repo.create_remote('working', path)
 
         # Remove everything from the last recorded state
         try:
             git.rm(".", r=True)
-        except GitCommandError:
+        except GitCommandError as e:
             # trivial case, nothing in repository
             # TODO: Make assertion
             pass
@@ -104,7 +106,8 @@ class MapMaker:
         subprocess.call(['cp', '-R', path, self.repo_data_dir+path_hash])
         git.add(A=True)
         git.commit(m="Working changes at %s" % "TODO: Add timestamp")
-        # TODO: Return commit hash 
+        commit_hash = repo.head.commit.hexsha
+        return commit_hash
 
     def _collect_tests(self, watch_path):
         """ Gets a list of tests to run """        
@@ -158,13 +161,22 @@ class MapMaker:
         with open('.map_data/'+watch_path_hash+'/'+branch_hash+'/test_map.json', 'w') as fp:
             json.dump(test_map, fp)
 
+    def _get_mirror_repo(self, path):
+        """ Returns the mirror Repo instance, with the working repo's current branch checked out """
+        path_hash = hashlib.md5(path).hexdigest()
+        mirror_repo = Repo(self.repo_data_dir+path_hash)
+        working_repo = Repo(path)
+        branch = working_repo.active_branch.name
+        mirror_repo.git.checkout(branch)
+        return mirror_repo
+
     def _get_delta(self, watch_path):
         """ Returns the % change of code since the last map """
         working_repo = Repo(watch_path)
-        # TODO: Get branch
+        mirror_repo = self._get_mirror_repo(watch_path)
 
         # TODO: Compare to mirror repo/branch
-        diff = repo.head.commit.diff()
+        #diff = repo.head.commit.diff()
 
     def _format_test_paths(self, nose_output):
         nose_args = []

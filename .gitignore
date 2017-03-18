@@ -90,3 +90,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# own data files
+.repo_data
+.map_data
+.trash_can
