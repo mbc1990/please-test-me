@@ -24,5 +24,6 @@ def main():
         # Cleanup .nose_output.txt
         os.remove(dir + ".nose_output.txt")
 
+
 if __name__ == "__main__":
     main()

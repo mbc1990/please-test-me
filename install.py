@@ -35,21 +35,23 @@ def main():
     copyfile("run_tcl.sh", working_dir + "run_tcl.sh")
     st = os.stat(working_dir + "run_tcl.sh")
     os.chmod(working_dir + "run_tcl.sh",  st.st_mode | stat.S_IEXEC)
-    
+
     # Copy bootstrap_tcl.sh to working dir
     copyfile("bootstrap_tcl.sh", working_dir + "bootstrap_tcl.sh")
     st = os.stat(working_dir + "bootstrap_tcl.sh")
     os.chmod(working_dir + "bootstrap_tcl.sh",  st.st_mode | stat.S_IEXEC)
-  
+
     # Copy bootstrap_bm.sh to working dir
     copyfile("bootstrap_bm.sh", working_dir + "bootstrap_bm.sh")
     st = os.stat(working_dir + "bootstrap_bm.sh")
     os.chmod(working_dir + "bootstrap_bm.sh",  st.st_mode | stat.S_IEXEC)
 
     # Copy bootstrap_update_test_map.sh to working dir
-    copyfile("bootstrap_update_test_map.sh", working_dir + "bootstrap_update_test_map.sh")
+    copyfile("bootstrap_update_test_map.sh",
+             working_dir + "bootstrap_update_test_map.sh")
     st = os.stat(working_dir + "bootstrap_update_test_map.sh")
-    os.chmod(working_dir + "bootstrap_update_test_map.sh",  st.st_mode | stat.S_IEXEC)
+    os.chmod(working_dir + "bootstrap_update_test_map.sh",
+             st.st_mode | stat.S_IEXEC)
 
     # Copy bootstrap_run_test.sh to working dir
     copyfile("bootstrap_run_test.sh", working_dir + "bootstrap_run_test.sh")
@@ -74,12 +76,12 @@ def main():
             ]
         }
         pp = pprint.PrettyPrinter(indent=4)
-        print "Example configuration:" 
+        print "Example configuration:"
         pp.pprint(example)
         config = {
             # Members of this list should be of the form:
             # {
-            #  "dir": <absolute path to dir>, 
+            #  "dir": <absolute path to dir>,
             #  "venv": <absolute path to corresponding virtualenv>
             # }
             "dirs_to_track": [  # Absolute paths to repos it's active in
@@ -88,7 +90,7 @@ def main():
         }
         with open(working_dir + "conf.json", 'w') as outfile:
             json.dump(config, outfile)
-    
+
     # Create test map file if it doesn't exist
     if not os.path.exists(working_dir + "test_map.json"):
         with open(working_dir + "test_map.json", 'w') as outfile:
@@ -96,4 +98,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    main()
