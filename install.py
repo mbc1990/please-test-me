@@ -38,8 +38,11 @@ def main():
     copyfile("bootstrap_tcl.sh", working_dir + "bootstrap_tcl.sh")
     st = os.stat(working_dir + "bootstrap_tcl.sh")
     os.chmod(working_dir + "bootstrap_tcl.sh",  st.st_mode | stat.S_IEXEC)
-
-    #TODO: Copy run_bm.sh and bootstrap_bm.sh to /usr/local/bin 
+  
+    # Copy bootstrap_bm.sh to working dir
+    copyfile("bootstrap_bm.sh", working_dir + "bootstrap_bm.sh")
+    st = os.stat(working_dir + "bootstrap_bm.sh")
+    os.chmod(working_dir + "bootstrap_bm.sh",  st.st_mode | stat.S_IEXEC)
 
     # Create configuration file if it doesn't exist
     if not os.path.exists(working_dir + "conf.json"):
