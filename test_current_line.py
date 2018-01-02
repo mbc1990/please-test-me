@@ -13,7 +13,7 @@ def main():
 
     which_nosetests = 'nosetests'
   
-    # TODO: Handle this file not existing
+    # If you ran install.py, this file will always exist
     with open('test_map.json') as fp:    
         test_map = json.load(fp)
 

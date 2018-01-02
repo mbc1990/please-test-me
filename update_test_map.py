@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 import coverage
@@ -7,9 +8,49 @@ import json
 from glob import glob
 
 def main():
+    """
+    Runs the tests one at a time, tracking what files they cover
+
+    N.B. This runs in the host virtual environment
+    """
     # Get tests
     dir = sys.argv[1]
     test_paths = get_test_paths(dir)
+    
+    # Get test map from disk
+    test_map = None
+    working_dir = os.path.expanduser("~") + "/.please-test-me/"
+    with open(working_dir + "test_map.json") as fp:    
+        test_map = json.load(fp)
+
+    # Absolute path of project 
+    project_dir = dir
+
+    # List of project files 
+    file_list =  [y for x in os.walk(project_dir) for y in glob(os.path.join(x[0], '*.py'))]
+    
+    for path in test_paths:
+        cov = coverage.Coverage()
+        cov.start()
+        test_path = path[0]+'.py:'+path[1]
+        result = nose.run(argv=['--nocapture', dir + test_path])
+        cov.stop()
+        cov.save()
+
+        # For each project file
+        for file_name in file_list:
+            line_numbers_covered = get_covered_lines(file_name, cov)
+            if line_numbers_covered:
+                if file_name not in test_map:
+                    test_map[file_name] = {}
+                for line in line_numbers_covered:
+                    if line not in test_map[file_name]:
+                        test_map[file_name][line] = []
+                    test_map[file_name][line].append(test_path)
+    
+    with open(working_dir + "test_map.json", "w") as fp:
+        json.dump(test_map, fp)
+    
     print test_paths
 
 def get_test_paths(dir):
@@ -31,6 +72,9 @@ def get_test_paths(dir):
                 dot_path = class_name+'.'+test_name
                 nose_args.append((test_file_path, dot_path))
         return nose_args 
+
+def get_covered_lines(path, cov):
+    return cov.data.lines(path)
 
 if __name__ == "__main__":
     main()

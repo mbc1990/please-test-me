@@ -71,9 +71,13 @@ def main():
         }
         with open(working_dir + "conf.json", 'w') as outfile:
             json.dump(config, outfile)
+    
+    # Create test map file if it doesn't exist
+    if not os.path.exists(working_dir + "test_map.json"):
+        with open(working_dir + "test_map.json", 'w') as outfile:
+            json.dump({}, outfile)
 
       # TODO: Add cron job
-
 
 
 if __name__ == "__main__":
