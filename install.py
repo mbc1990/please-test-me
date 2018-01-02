@@ -50,6 +50,11 @@ def main():
     st = os.stat(working_dir + "bootstrap_update_test_map.sh")
     os.chmod(working_dir + "bootstrap_update_test_map.sh",  st.st_mode | stat.S_IEXEC)
 
+    # Copy bootstrap_run_test.sh to working dir
+    copyfile("bootstrap_run_test.sh", working_dir + "bootstrap_run_test.sh")
+    st = os.stat(working_dir + "bootstrap_run_test.sh")
+    os.chmod(working_dir + "bootstrap_run_test.sh",  st.st_mode | stat.S_IEXEC)
+
     # Copy gen_tests.sh to working dir
     copyfile("gen_tests.sh", working_dir + "gen_tests.sh")
     st = os.stat(working_dir + "gen_tests.sh")
