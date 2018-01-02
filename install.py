@@ -1,6 +1,7 @@
 import os
 import stat
 import json
+import pprint
 import subprocess
 from shutil import copyfile
 
@@ -64,6 +65,17 @@ def main():
     if not os.path.exists(working_dir + "conf.json"):
         print "Configuration file does not exist."
         print "Please update " + working_dir + "conf.json"
+        example = {
+            "dirs_to_track": [
+                {
+                    "dir": "<absolute path to directory>",
+                    "venv": "<absolute path to venv corresponding to dir>"
+                }
+            ]
+        }
+        pp = pprint.PrettyPrinter(indent=4)
+        print "Example configuration:" 
+        pp.pprint(example)
         config = {
             # Members of this list should be of the form:
             # {
@@ -81,8 +93,6 @@ def main():
     if not os.path.exists(working_dir + "test_map.json"):
         with open(working_dir + "test_map.json", 'w') as outfile:
             json.dump({}, outfile)
-
-      # TODO: Add cron job
 
 
 if __name__ == "__main__":
