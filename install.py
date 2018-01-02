@@ -1,4 +1,5 @@
 import os
+import stat
 import json
 import subprocess
 from shutil import copyfile
@@ -25,10 +26,20 @@ def main():
         subprocess.call(["./init_venv.sh"])
 
     # Copy test_current_line.py and build_map.py to working dir
-    copyfile("test_current_line.py", working_dir+"test_current_line.py")
-    copyfile("build_map.py", working_dir+"build_map.py")
+    copyfile("test_current_line.py", working_dir + "test_current_line.py")
+    copyfile("build_map.py", working_dir + "build_map.py")
 
-    #TODO: Copy run_tcu.sh and run_bm.sh to /usr/local/bin 
+    # Copy run_tcl.sh to working dir
+    copyfile("run_tcl.sh", working_dir + "run_tcl.sh")
+    st = os.stat(working_dir + "run_tcl.sh")
+    os.chmod(working_dir + "run_tcl.sh",  st.st_mode | stat.S_IEXEC)
+    
+    # Copy bootstrap_tcl.sh to working dir
+    copyfile("bootstrap_tcl.sh", working_dir + "bootstrap_tcl.sh")
+    st = os.stat(working_dir + "bootstrap_tcl.sh")
+    os.chmod(working_dir + "bootstrap_tcl.sh",  st.st_mode | stat.S_IEXEC)
+
+    #TODO: Copy run_bm.sh and bootstrap_bm.sh to /usr/local/bin 
 
     # Create configuration file if it doesn't exist
     if not os.path.exists(working_dir + "conf.json"):
