@@ -12,7 +12,8 @@ def main():
     return
 
     which_nosetests = 'nosetests'
-
+  
+    # TODO: Handle this file not existing
     with open('test_map.json') as fp:    
         test_map = json.load(fp)
 
