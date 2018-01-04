@@ -30,23 +30,26 @@ def main():
     file_list =  [y for x in os.walk(project_dir) for y in glob(os.path.join(x[0], '*.py'))]  # noqa
 
     for path in test_paths:
-        cov = coverage.Coverage()
-        cov.start()
-        test_path = path[0]+'.py:'+path[1]
-        nose.run(argv=['--nocapture', dir + test_path])
-        cov.stop()
-        cov.save()
+        try:
+            cov = coverage.Coverage()
+            cov.start()
+            test_path = path[0]+'.py:'+path[1]
+            nose.run(argv=['--nocapture', dir + test_path])
+            cov.stop()
+            cov.save()
 
-        # For each project file
-        for file_name in file_list:
-            line_numbers_covered = get_covered_lines(file_name, cov)
-            if line_numbers_covered:
-                if file_name not in test_map:
-                    test_map[file_name] = {}
-                for line in line_numbers_covered:
-                    if line not in test_map[file_name]:
-                        test_map[file_name][line] = []
-                    test_map[file_name][line].append(test_path)
+            # For each project file
+            for file_name in file_list:
+                line_numbers_covered = get_covered_lines(file_name, cov)
+                if line_numbers_covered:
+                    if file_name not in test_map:
+                        test_map[file_name] = {}
+                    for line in line_numbers_covered:
+                        if line not in test_map[file_name]:
+                            test_map[file_name][line] = []
+                        test_map[file_name][line].append(test_path)
+        except:
+            pass
 
     with open(working_dir + "test_map.json", "w") as fp:
         json.dump(test_map, fp)
@@ -66,10 +69,13 @@ def get_test_paths(dir):
             if testpath:
                 test_name = line.split(' ')[0]
                 path = testpath.group().replace('(', '').replace(')', '')
-                class_name = re.search(r'([A-Z][a-z0-9]+)+', path).group(0)
-                test_file_path = path.split(class_name)[0][:-1].replace('.','/')  # noqa
-                dot_path = class_name+'.'+test_name
-                nose_args.append((test_file_path, dot_path))
+                if path:
+                    class_name = re.search(r'([A-Z][a-z0-9]+)+', path)
+                    if class_name:
+                        class_name = class_name.group(0)
+                        test_file_path = path.split(class_name)[0][:-1].replace('.','/')  # noqa
+                        dot_path = class_name+'.'+test_name
+                        nose_args.append((test_file_path, dot_path))
         return nose_args
 
 
